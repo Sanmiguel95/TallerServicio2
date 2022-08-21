@@ -12,22 +12,23 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class ResponseData(BaseModel):
-    idUsuario: str
+    encryptedToken: str =""
     internalId: int = 0
 
 Instrumentator().instrument(app).expose(app)
 
-@app.get("/infoUsers/{idUsuario}", response_model=ResponseData)
-def read_root(idUsuario: str):
-    logger.debug("idUsuario recibido: " + idUsuario)
+@app.get("/infoUsers/{internalId}", response_model=ResponseData)
+def read_root(internalId: int):
+    internalId_string= str(internalId)
+    logger.debug("internalId recibido: " + internalId_string)
     
     url = 'https://63025538c6dda4f287b7ee62.mockapi.io/infoUsers/service1'
-    responseData = ResponseData(idUsuario= idUsuario)
+    responseData = ResponseData(internalId= internalId)
     
-    requestResult = requests.get(url + "?idUsuario=" + idUsuario, timeout=5)
+    requestResult = requests.get(url + "?internalId=" + internalId, timeout=5)
     
     if(len(requestResult.json()) >= 1):
-        responseData.internalId = requestResult.json()[0]["internalId"]
+        responseData.internalId = requestResult.json()[0]["encryptedToken"]
         return Response(content= responseData.json())
     else:
         return Response(status_code= status.HTTP_204_NO_CONTENT)
